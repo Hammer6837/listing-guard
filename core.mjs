@@ -69,6 +69,55 @@ const FIELD_LABELS = {
   size: "尺寸/规格",
 };
 
+const SHOPIFY_EXACT_HEADERS = [
+  "Handle",
+  "Title",
+  "Body (HTML)",
+  "Vendor",
+  "Product Category",
+  "Type",
+  "Tags",
+  "Published",
+  "Option1 Name",
+  "Option1 Value",
+  "Option2 Name",
+  "Option2 Value",
+  "Option3 Name",
+  "Option3 Value",
+  "Variant SKU",
+  "Variant Grams",
+  "Variant Inventory Tracker",
+  "Variant Inventory Qty",
+  "Variant Inventory Policy",
+  "Variant Fulfillment Service",
+  "Variant Price",
+  "Variant Compare At Price",
+  "Variant Requires Shipping",
+  "Variant Taxable",
+  "Variant Barcode",
+  "Image Src",
+  "Image Position",
+  "Image Alt Text",
+  "Gift Card",
+  "SEO Title",
+  "SEO Description",
+  "Google Shopping / Google Product Category",
+  "Google Shopping / Gender",
+  "Google Shopping / Age Group",
+  "Google Shopping / MPN",
+  "Google Shopping / Condition",
+  "Google Shopping / Custom Product",
+  "Variant Image",
+  "Variant Weight Unit",
+  "Variant Tax Code",
+  "Cost per item",
+  "Status",
+];
+
+const SHOPIFY_HEADER_BY_NORMALIZED = new Map(
+  SHOPIFY_EXACT_HEADERS.map((header) => [normalizeHeader(header), header])
+);
+
 export function parseCsv(text) {
   return parseDelimited(text, ",");
 }
@@ -125,7 +174,7 @@ function parseDelimited(text, delimiter) {
     return { headers: [], records: [] };
   }
 
-  const headers = rows[0].map((header, index) => header.trim() || `未命名列${index + 1}`);
+  const headers = rows[0].map((header, index) => header.trim() ? header : `未命名列${index + 1}`);
   const records = rows.slice(1).map((cells, index) => {
     const record = { __rowNumber: index + 2 };
     headers.forEach((header, cellIndex) => {
@@ -176,6 +225,7 @@ export function analyzeProducts(headers, records) {
   const seenHandles = new Map();
   const handleRows = new Map();
   const shopifyMode = isShopifyLike(headers, fieldMap);
+  addShopifyHeaderIssues(issues, headers, shopifyMode);
 
   records.forEach((record) => {
     const rowNumber = record.__rowNumber;
@@ -384,6 +434,25 @@ function addRiskTermIssues(issues, rowNumber, field, text) {
     String(text).slice(0, 160),
     "这些词不一定违规，但建议人工确认资质、证据和平台规则，避免绝对化或功效承诺。"
   );
+}
+
+function addShopifyHeaderIssues(issues, headers, shopifyMode) {
+  if (!shopifyMode) return;
+
+  headers.forEach((header) => {
+    const exactHeader = SHOPIFY_HEADER_BY_NORMALIZED.get(normalizeHeader(header));
+    if (!exactHeader || header === exactHeader) return;
+
+    addIssue(
+      issues,
+      "warning",
+      1,
+      header,
+      "Shopify 表头格式不一致",
+      header,
+      `Shopify CSV 表头区分大小写和空格，建议改为精确表头：${exactHeader}。`
+    );
+  });
 }
 
 function addOptionPairIssue(issues, rowNumber, nameField, valueField, name, value, label) {
