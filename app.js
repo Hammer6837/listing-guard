@@ -4,6 +4,7 @@ const fileInput = document.querySelector("#csvFile");
 const pasteInput = document.querySelector("#pasteData");
 const analyzePasteButton = document.querySelector("#analyzePaste");
 const sampleButton = document.querySelector("#loadSample");
+const shopifySampleButton = document.querySelector("#loadShopifySample");
 const downloadButton = document.querySelector("#downloadReport");
 const copyRequestButton = document.querySelector("#copyRequest");
 const resetButton = document.querySelector("#resetTool");
@@ -41,6 +42,12 @@ sampleButton.addEventListener("click", async () => {
   const response = await fetch("./sample-products.csv");
   const text = await response.text();
   runAnalysis(text, "sample-products.csv");
+});
+
+shopifySampleButton.addEventListener("click", async () => {
+  const response = await fetch("./sample-shopify-products.csv");
+  const text = await response.text();
+  runAnalysis(text, "sample-shopify-products.csv");
 });
 
 downloadButton.addEventListener("click", () => {

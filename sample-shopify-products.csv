@@ -1,0 +1,4 @@
+handle,Title,Option1 Name,Option1 Value,Variant SKU,Variant Price,Variant Compare At Price,Variant Inventory Qty ,Variant Inventory Tracker,Image Src,Image Alt Text
+demo-shirt,Demo Cotton T-Shirt,Size,S,DEMO-S,19.9,19.9,10,,https://example.com/demo-shirt-front.jpg https://example.com/demo-shirt-back.jpg,
+demo-pants,Demo Casual Pants,Size,M,DEMO-PANTS-M,29.9,39.9,8,shopify,https://example.com/demo-pants.jpg,Demo casual pants
+demo-shirt,Demo Cotton T-Shirt,Size,M,DEMO-M,19.9,29.9,12,,https://example.com/demo-shirt-m.jpg,
