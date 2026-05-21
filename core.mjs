@@ -54,6 +54,15 @@ const FIELD_LABELS = {
 };
 
 export function parseCsv(text) {
+  return parseDelimited(text, ",");
+}
+
+export function parseTable(text) {
+  const source = stripBom(String(text || ""));
+  return parseDelimited(source, detectDelimiter(source));
+}
+
+function parseDelimited(text, delimiter) {
   const rows = [];
   let row = [];
   let field = "";
@@ -75,7 +84,7 @@ export function parseCsv(text) {
       continue;
     }
 
-    if (char === "," && !inQuotes) {
+    if (char === delimiter && !inQuotes) {
       row.push(field);
       field = "";
       continue;
@@ -110,6 +119,38 @@ export function parseCsv(text) {
   });
 
   return { headers, records };
+}
+
+function detectDelimiter(source) {
+  const firstDataLine = String(source || "")
+    .split(/\r?\n/)
+    .find((line) => line.trim() !== "") || "";
+  const commaCount = countDelimiterOutsideQuotes(firstDataLine, ",");
+  const tabCount = countDelimiterOutsideQuotes(firstDataLine, "\t");
+  return tabCount > commaCount ? "\t" : ",";
+}
+
+function countDelimiterOutsideQuotes(line, delimiter) {
+  let count = 0;
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+    const next = line[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && next === '"') {
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === delimiter && !inQuotes) count += 1;
+  }
+
+  return count;
 }
 
 export function analyzeProducts(headers, records) {

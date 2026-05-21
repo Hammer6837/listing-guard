@@ -18,14 +18,20 @@
 
       <section class="workspace">
         <aside class="panel upload-panel">
-          <h2>上传商品表</h2>
-          <p class="muted">仅在浏览器本地解析 CSV，不上传、不登录平台、不自动上架。</p>
+          <h2>导入商品表</h2>
+          <p class="muted">仅在浏览器本地解析 CSV 或粘贴内容，不上传、不登录平台、不自动上架。</p>
 
           <label class="drop-zone" for="csvFile">
             <span>选择 CSV 文件</span>
             <small>支持常见字段：标题、SKU、图片、价格、库存、描述、SEO 标题/描述</small>
           </label>
           <input id="csvFile" type="file" accept=".csv,text/csv">
+
+          <div class="paste-box">
+            <label for="pasteData">从 Excel / 表格复制粘贴</label>
+            <textarea id="pasteData" rows="7" placeholder="把表头和商品行粘贴到这里，例如：标题、SKU、图片、价格、库存..."></textarea>
+            <button id="analyzePaste" type="button">分析粘贴内容</button>
+          </div>
 
           <div class="button-row">
             <button id="loadSample" type="button">载入示例</button>
@@ -43,7 +49,7 @@
             <div class="panel-head">
               <div>
                 <h2>体检结果</h2>
-                <p id="statusText" class="muted">上传 CSV 后开始体检。</p>
+                <p id="statusText" class="muted">上传 CSV 或粘贴表格后开始体检。</p>
               </div>
               <button id="downloadReport" type="button" disabled>下载报告</button>
             </div>
@@ -60,7 +66,7 @@
 
             <div id="emptyState" class="empty-state">
               <strong>还没有体检报告</strong>
-              <span>先上传一份商品 CSV，或者载入示例数据看看效果。</span>
+              <span>先上传 CSV、粘贴表格，或者载入示例数据看看效果。</span>
             </div>
 
             <div id="issues" class="issue-table"></div>

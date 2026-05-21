@@ -1,6 +1,8 @@
-import { analyzeProducts, issuesToCsv, parseCsv, severityLabel } from "./core.mjs";
+import { analyzeProducts, issuesToCsv, parseTable, severityLabel } from "./core.mjs";
 
 const fileInput = document.querySelector("#csvFile");
+const pasteInput = document.querySelector("#pasteData");
+const analyzePasteButton = document.querySelector("#analyzePaste");
 const sampleButton = document.querySelector("#loadSample");
 const downloadButton = document.querySelector("#downloadReport");
 const resetButton = document.querySelector("#resetTool");
@@ -20,6 +22,15 @@ fileInput.addEventListener("change", async (event) => {
   if (!file) return;
   const text = await file.text();
   runAnalysis(text, file.name);
+});
+
+analyzePasteButton.addEventListener("click", () => {
+  const text = pasteInput.value.trim();
+  if (!text) {
+    statusText.textContent = "请先粘贴从 Excel、表格或 CSV 复制的内容。";
+    return;
+  }
+  runAnalysis(text, "粘贴表格内容");
 });
 
 sampleButton.addEventListener("click", async () => {
@@ -42,10 +53,11 @@ downloadButton.addEventListener("click", () => {
 
 resetButton.addEventListener("click", () => {
   fileInput.value = "";
+  pasteInput.value = "";
   currentIssues = [];
   currentFilter = "all";
   fileNameEl.textContent = "未选择文件";
-  statusText.textContent = "上传 CSV 后开始体检。";
+  statusText.textContent = "上传 CSV 或粘贴表格后开始体检。";
   summaryEl.innerHTML = "";
   fieldsEl.innerHTML = "";
   issuesEl.innerHTML = "";
@@ -64,9 +76,9 @@ filterButtons.forEach((button) => {
 
 function runAnalysis(text, filename) {
   try {
-    const { headers, records } = parseCsv(text);
+    const { headers, records } = parseTable(text);
     if (headers.length === 0 || records.length === 0) {
-      throw new Error("CSV 没有可分析的数据行。");
+      throw new Error("表格没有可分析的数据行。");
     }
 
     const result = analyzeProducts(headers, records);
@@ -79,7 +91,7 @@ function runAnalysis(text, filename) {
     renderFields(result.summary.detectedFields);
     renderIssues();
   } catch (error) {
-    statusText.textContent = error.message || "解析失败，请确认文件是 CSV。";
+    statusText.textContent = error.message || "解析失败，请确认内容是 CSV 或从表格复制的文本。";
     emptyState.hidden = false;
     downloadButton.disabled = true;
   }
