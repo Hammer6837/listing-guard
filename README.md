@@ -34,6 +34,8 @@
 
 延伸阅读：[商品表导入前最容易踩的 7 个坑](./article-7-mistakes.html)
 
+Shopify 专题：[Shopify CSV 导入前检查清单](./shopify-csv-checklist.html)
+
 ## 支持边界
 
 本工具只做格式、完整性和常见风险提示，不替代平台官方审核，不承诺导入成功、审核通过、搜索排名或成交结果。

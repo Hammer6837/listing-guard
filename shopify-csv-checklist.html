@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shopify CSV 导入前检查清单</title>
+    <meta name="description" content="Shopify 商品 CSV 导入前检查表头、Handle、Variant SKU、Option、Compare At Price、库存追踪和图片链接。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="app-shell article-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Shopify CSV Checklist</p>
+          <h1>Shopify CSV 导入前检查清单</h1>
+        </div>
+        <a class="text-link" href="./">打开体检工具</a>
+      </header>
+
+      <article class="article-body">
+        <p class="lead">Shopify CSV 导入失败，很多时候不是商品资料本身错了，而是表头、变体行、图片链接或价格字段没有按 Shopify 模板整理好。导入前先检查一遍，能少掉很多返工。</p>
+
+        <section>
+          <h2>1. 表头要和 Shopify 模板精确一致</h2>
+          <p>Shopify CSV 的列名需要按模板填写，大小写和空格都值得检查。比如 <code>handle</code> 应改为 <code>Handle</code>，<code>Variant Inventory Qty </code> 末尾多一个空格也容易埋坑。</p>
+          <p>建议先从 Shopify 导出一份 sample CSV，再把供应商表映射到对应列。</p>
+        </section>
+
+        <section>
+          <h2>2. Handle 决定哪些行属于同一个商品</h2>
+          <p>同一个商品的多个变体通常共用同一个 <code>Handle</code>。如果同一 Handle 的行被打散，后面整理图片、价格和变体时会更难排查。</p>
+          <p>建议同一 Handle 的行放在一起，并确认它们确实是同一商品的不同规格。</p>
+        </section>
+
+        <section>
+          <h2>3. Option 名称和值要成对</h2>
+          <p><code>Option1 Name</code> 和 <code>Option1 Value</code> 应同时出现。比如 Name 是 Size，Value 可以是 S、M、L。只有值没有名称，或只有名称没有值，都容易造成变体结构异常。</p>
+          <p>颜色、尺码、容量这类规格，最好分别放在 Option1、Option2、Option3，而不是混在标题里。</p>
+        </section>
+
+        <section>
+          <h2>4. Variant SKU 不能空，也不要重复</h2>
+          <p>SKU 是后续更新库存、价格、图片和订单识别的重要字段。供应商表里经常出现空 SKU、重复 SKU 或临时编号。</p>
+          <p>建议导入前先查空值和重复值。多平台销售时，保留一套稳定的内部 SKU。</p>
+        </section>
+
+        <section>
+          <h2>5. Compare At Price 应高于 Variant Price</h2>
+          <p><code>Variant Compare At Price</code> 通常用于展示划线价。如果它小于或等于 <code>Variant Price</code>，折扣展示可能异常。</p>
+          <p>不使用划线价时，可以留空；不要为了填满表格随便复制售价。</p>
+        </section>
+
+        <section>
+          <h2>6. 库存数量和库存追踪要一起看</h2>
+          <p><code>Variant Inventory Qty</code> 有值时，要确认是否需要 <code>Variant Inventory Tracker</code>。如果店铺希望 Shopify 跟踪库存，通常要按模板填写对应值。</p>
+          <p>库存字段建议只保留非负整数，不要写“10 units”“现货”“待补”这类文本。</p>
+        </section>
+
+        <section>
+          <h2>7. 图片链接要公开、直接、可整理</h2>
+          <p><code>Image Src</code> 最好是公开可访问的图片直链。一个单元格里塞多个图片 URL，后续通常需要拆行或按平台模板重排。</p>
+          <p>导入前至少检查空图片、非图片链接和多链接单元格。批量图片很多时，人工重排比逐个导入后补图更省时间。</p>
+        </section>
+
+        <section class="article-cta">
+          <h2>用工具先跑一遍</h2>
+          <p>商品上架表体检器可以上传 CSV，也可以直接粘贴从 Excel、飞书表格或 Google Sheets 复制的 Shopify 商品表。它会在浏览器本地检查表头、SKU、图片、价格、库存和变体字段。</p>
+          <a class="primary-link" href="./">打开商品上架表体检器</a>
+          <a class="text-link" href="./services.html">查看人工诊断和修表服务</a>
+          <p class="muted">本工具只做格式、完整性和常见风险提示，不替代 Shopify 官方审核，不承诺导入成功、审核通过、排名或销量。公开页面不要上传真实供应商表。</p>
+        </section>
+      </article>
+    </main>
+  </body>
+</html>
