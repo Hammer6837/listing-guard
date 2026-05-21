@@ -1,4 +1,4 @@
-import { analyzeProducts, issuesToCsv, parseTable, severityLabel } from "./core.mjs";
+import { analyzeProducts, issuesToCsv, parseTable, severityLabel } from "./core.mjs?v=shopify-checks";
 
 const fileInput = document.querySelector("#csvFile");
 const pasteInput = document.querySelector("#pasteData");
