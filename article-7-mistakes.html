@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>商品表导入前最容易踩的 7 个坑</title>
+    <meta name="description" content="批量上架前检查商品表里的空 SKU、重复货号、空图片、异常价格、库存格式和标题风险词。">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="app-shell article-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Listing Table Checklist</p>
+          <h1>商品表导入前最容易踩的 7 个坑</h1>
+        </div>
+        <a class="text-link" href="./">打开体检工具</a>
+      </header>
+
+      <article class="article-body">
+        <p class="lead">很多商品表不是坏在“大问题”，而是坏在导入前没人做最后一遍体检。平台报错时，运营往往只能一行一行排查，最浪费时间。</p>
+
+        <section>
+          <h2>1. SKU 为空</h2>
+          <p>SKU/货号是商品表里最基础的定位字段。为空之后，后面查价格、库存、图片、变体都容易对不上。</p>
+          <p>建议每一行都保留唯一 SKU，不用纯随机数字，尽量带一点品类、款式、颜色或尺码信息。</p>
+        </section>
+
+        <section>
+          <h2>2. SKU 重复</h2>
+          <p>重复 SKU 比空 SKU 更麻烦，因为它看起来像“有值”，但导入或更新时可能覆盖错商品。</p>
+          <p>建议导入前先查重。多平台同步时，保留一套稳定的内部编码。</p>
+        </section>
+
+        <section>
+          <h2>3. 图片为空或图片链接异常</h2>
+          <p>商品表里有标题、价格，但图片为空，常见结果是导入失败、上架后展示异常，或者需要人工补图。</p>
+          <p>建议主图字段不能为空。图片链接最好使用稳定可访问的 URL；不确定图片是否可访问时，单独做一列检查状态。</p>
+        </section>
+
+        <section>
+          <h2>4. 价格为 0 或格式异常</h2>
+          <p>价格字段如果出现 0、空值、带多余符号、中文单位，后面很容易变成导入错误或运营事故。</p>
+          <p>建议保留纯数字价格。导入前查 0 元、负数、空值；成本价、采购价、售价不要混在同一列。</p>
+        </section>
+
+        <section>
+          <h2>5. 库存不是整数</h2>
+          <p>库存如果出现小数、中文、范围值，平台通常不能正确识别。</p>
+          <p>建议库存只填整数。暂无库存用 0，不要写“无”“缺货”“待补”。</p>
+        </section>
+
+        <section>
+          <h2>6. 标题里有敏感或夸大词</h2>
+          <p>“最好”“第一”“全网最低”“100%”“永久”“治疗”等词，在不同平台、不同类目里都可能带来审核风险。</p>
+          <p>建议标题先写清楚品类、规格、材质、使用场景。功效、认证、极限词要有真实依据，不确定就不要写。</p>
+        </section>
+
+        <section>
+          <h2>7. 描述、材质、尺寸、SEO 字段缺失</h2>
+          <p>很多商品能导入，但信息不完整，后面还要返工补描述、材质、尺寸、SEO 标题和描述。</p>
+          <p>不同平台模板不一样，但标题、SKU、图片、价格、库存、描述、材质、尺寸一般都值得先检查。</p>
+        </section>
+
+        <section class="article-cta">
+          <h2>免费体检工具</h2>
+          <p>商品上架表体检器支持上传 CSV，也支持从 Excel、飞书表格、Google Sheets 复制粘贴。表格只在浏览器本地解析，不上传服务器，不需要登录平台。</p>
+          <a class="primary-link" href="./">打开商品上架表体检器</a>
+          <p class="muted">本工具只做格式、完整性和常见风险提示，不替代平台官方审核，不承诺导入成功、审核通过、排名或销量。</p>
+        </section>
+      </article>
+    </main>
+  </body>
+</html>
