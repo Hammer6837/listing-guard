@@ -7,6 +7,7 @@ const sampleButton = document.querySelector("#loadSample");
 const shopifySampleButton = document.querySelector("#loadShopifySample");
 const downloadButton = document.querySelector("#downloadReport");
 const copyRequestButton = document.querySelector("#copyRequest");
+const openIssueButton = document.querySelector("#openIssue");
 const resetButton = document.querySelector("#resetTool");
 const statusText = document.querySelector("#statusText");
 const summaryEl = document.querySelector("#summary");
@@ -75,6 +76,15 @@ copyRequestButton.addEventListener("click", async () => {
     : "已生成诊断需求说明；若浏览器禁止自动复制，请手动复制文本框内容。";
 });
 
+openIssueButton.addEventListener("click", () => {
+  if (!currentSummary) return;
+  const issueUrl = buildIssueUrl();
+  const opened = window.open(issueUrl, "_blank", "noopener");
+  statusText.textContent = opened
+    ? "已打开 GitHub 脱敏咨询页；请确认内容无敏感信息后再提交。"
+    : "浏览器阻止了新窗口；请先复制诊断需求，再手动打开 GitHub Issues。";
+});
+
 resetButton.addEventListener("click", () => {
   fileInput.value = "";
   pasteInput.value = "";
@@ -91,6 +101,7 @@ resetButton.addEventListener("click", () => {
   emptyState.hidden = false;
   downloadButton.disabled = true;
   copyRequestButton.disabled = true;
+  openIssueButton.disabled = true;
   setActiveFilter("all");
 });
 
@@ -119,6 +130,7 @@ function runAnalysis(text, filename) {
     emptyState.hidden = true;
     downloadButton.disabled = currentIssues.length === 0;
     copyRequestButton.disabled = false;
+    openIssueButton.disabled = false;
     renderSummary(result.summary);
     renderFields(result.summary.detectedFields);
     renderIssues();
@@ -127,6 +139,7 @@ function runAnalysis(text, filename) {
     emptyState.hidden = false;
     downloadButton.disabled = true;
     copyRequestButton.disabled = true;
+    openIssueButton.disabled = true;
   }
 }
 
@@ -147,6 +160,43 @@ function buildDiagnosisRequest() {
     "已删除：成本价、供应商、客户信息、订单号、物流单号、内部备注、账号密码。",
     "",
     "请先判断是否适合做 99 元人工诊断；服务边界是不承诺导入成功、审核通过、排名或销量。"
+  ].join("\n");
+}
+
+function buildIssueUrl() {
+  const params = new URLSearchParams({
+    title: "[诊断需求] 商品表人工诊断",
+    body: buildIssueBody(),
+  });
+  return `https://github.com/Hammer6837/listing-guard/issues/new?${params.toString()}`;
+}
+
+function buildIssueBody() {
+  return [
+    "# 商品表诊断需求",
+    "",
+    "> 公开页面请勿上传真实供应商表、成本价、客户信息、订单号、物流单号、内部备注或账号密码。",
+    "",
+    "- [ ] 我不会上传真实商品表，只提交脱敏样例或文字说明。",
+    "- [ ] 我已经删除供应商、成本价、客户信息、订单号、物流单号、内部备注和账号密码。",
+    "- [ ] 我理解本工具和人工服务不承诺导入成功、审核通过、排名、销量或利润。",
+    "",
+    "## 想咨询的服务",
+    "",
+    "- [ ] 99 元人工诊断",
+    "- [ ] 299 元商品表修复",
+    "- [ ] 699 元上架资料整理",
+    "- [ ] 先不确定，请先判断",
+    "",
+    "## 工具生成的诊断需求说明",
+    "",
+    "```text",
+    buildDiagnosisRequest(),
+    "```",
+    "",
+    "## 脱敏样例或问题描述",
+    "",
+    "请只贴 2-3 行脱敏样例，使用假商品名、假 SKU、假图片链接。",
   ].join("\n");
 }
 
