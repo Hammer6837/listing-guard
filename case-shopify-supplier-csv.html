@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Shopify 供应商 CSV 体检案例</title>
+    <meta name="description" content="用虚构 Shopify 供应商 CSV 演示表头、SKU、图片、对比价、库存追踪和变体行问题如何被体检器发现。">
+    <link rel="canonical" href="https://hammer6837.github.io/listing-guard/case-shopify-supplier-csv.html">
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="app-shell article-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Shopify CSV Case</p>
+          <h1>Shopify 供应商 CSV 体检案例</h1>
+        </div>
+        <a class="text-link" href="./">打开体检工具</a>
+      </header>
+
+      <article class="article-body">
+        <p class="lead">这是一份虚构样例，用来说明供应商 CSV 在导入 Shopify 前常见的返工点。真实业务里请先脱敏，不要公开上传供应商、成本价、客户信息或内部备注。</p>
+
+        <section>
+          <h2>样例背景</h2>
+          <p>运营拿到一份 3 行商品表，准备导入 Shopify。表里有两个尺码的 T 恤和一条休闲裤，看起来字段不少，但导入前已经埋了几个典型问题。</p>
+          <pre><code>handle,Title,Option1 Name,Option1 Value,Variant SKU,Variant Price,Variant Compare At Price,Variant Inventory Qty ,Variant Inventory Tracker,Image Src
+demo-shirt,Demo Cotton T-Shirt,Size,S,DEMO-S,19.9,19.9,10,,https://example.com/demo-shirt-front.jpg https://example.com/demo-shirt-back.jpg
+demo-pants,Demo Casual Pants,Size,M,DEMO-PANTS-M,29.9,39.9,8,shopify,https://example.com/demo-pants.jpg
+demo-shirt,Demo Cotton T-Shirt,Size,M,DEMO-M,19.9,29.9,12,,https://example.com/demo-shirt-m.jpg</code></pre>
+        </section>
+
+        <section>
+          <h2>体检器会发现什么</h2>
+          <ul class="plain-list">
+            <li><strong>表头格式不一致：</strong><code>handle</code> 应改为 <code>Handle</code>，<code>Variant Inventory Qty </code> 末尾多了空格。</li>
+            <li><strong>对比价不高于售价：</strong>第一行 <code>Variant Compare At Price</code> 等于 <code>Variant Price</code>，折扣展示可能异常。</li>
+            <li><strong>库存追踪为空：</strong>库存数量有值，但 <code>Variant Inventory Tracker</code> 为空，需要确认是否应填写 <code>shopify</code>。</li>
+            <li><strong>图片字段包含多个链接：</strong>第一行 <code>Image Src</code> 塞了两个 URL，通常要拆行或按模板重排。</li>
+            <li><strong>同一 Handle 的变体行不连续：</strong><code>demo-shirt</code> 出现在第 2 行和第 4 行，中间插入了其他商品。</li>
+          </ul>
+        </section>
+
+        <section>
+          <h2>怎么修更稳</h2>
+          <p>第一步不要急着导入。先对照 Shopify sample CSV 把表头修到精确一致，再把同一 Handle 的变体行放在一起。图片多链接单元格要拆开，库存字段和库存追踪字段要一起确认。</p>
+          <p>如果只是几十行，99 元人工诊断适合先判断风险和修复优先级；如果已经有平台模板且需要交付修复后的 CSV，再考虑 299 元修表。</p>
+        </section>
+
+        <section class="article-cta">
+          <h2>自己试一下</h2>
+          <p>打开体检工具后点击“Shopify 示例”，可以直接看到这份虚构样表生成的问题报告。表格只在浏览器本地解析，不上传服务器。</p>
+          <a class="primary-link" href="./">打开商品上架表体检器</a>
+          <a class="text-link" href="./shopify-csv-checklist.html">阅读 Shopify CSV 检查清单</a>
+          <a class="text-link" href="./services.html">查看人工诊断和修表服务</a>
+          <p class="muted">本案例使用虚构数据。服务只做格式、完整性和常见风险提示，不替代 Shopify 官方审核，不承诺导入成功、审核通过、排名或销量。</p>
+        </section>
+      </article>
+    </main>
+  </body>
+</html>
