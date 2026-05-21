@@ -5,7 +5,15 @@ const FIELD_ALIASES = {
   image: ["图片", "主图", "图片链接", "图片URL", "图片地址", "主图链接", "image", "image src", "image url"],
   imageAlt: ["图片ALT", "图片alt", "图片描述", "image alt text", "alt"],
   price: ["价格", "售价", "销售价", "商品价格", "price", "variant price"],
+  compareAtPrice: ["原价", "划线价", "compare at price", "variant compare at price"],
   stock: ["库存", "库存数量", "inventory", "variant inventory qty", "qty"],
+  inventoryTracker: ["inventory tracker", "variant inventory tracker"],
+  option1Name: ["option1 name", "option 1 name", "规格1名称"],
+  option1Value: ["option1 value", "option 1 value", "规格1值"],
+  option2Name: ["option2 name", "option 2 name", "规格2名称"],
+  option2Value: ["option2 value", "option 2 value", "规格2值"],
+  option3Name: ["option3 name", "option 3 name", "规格3名称"],
+  option3Value: ["option3 value", "option 3 value", "规格3值"],
   description: ["描述", "商品描述", "详情", "详情描述", "body", "body (html)", "description"],
   seoTitle: ["SEO标题", "seo标题", "搜索标题", "page title", "seo title"],
   seoDescription: ["SEO描述", "seo描述", "meta description", "seo description"],
@@ -45,7 +53,15 @@ const FIELD_LABELS = {
   image: "图片",
   imageAlt: "图片 ALT",
   price: "价格",
+  compareAtPrice: "对比价",
   stock: "库存",
+  inventoryTracker: "库存追踪",
+  option1Name: "规格 1 名称",
+  option1Value: "规格 1 值",
+  option2Name: "规格 2 名称",
+  option2Value: "规格 2 值",
+  option3Name: "规格 3 名称",
+  option3Value: "规格 3 值",
   description: "商品描述",
   seoTitle: "SEO 标题",
   seoDescription: "SEO 描述",
@@ -158,6 +174,8 @@ export function analyzeProducts(headers, records) {
   const issues = [];
   const seenSkus = new Map();
   const seenHandles = new Map();
+  const handleRows = new Map();
+  const shopifyMode = isShopifyLike(headers, fieldMap);
 
   records.forEach((record) => {
     const rowNumber = record.__rowNumber;
@@ -167,7 +185,15 @@ export function analyzeProducts(headers, records) {
     const image = getField(record, fieldMap.image);
     const imageAlt = getField(record, fieldMap.imageAlt);
     const price = getField(record, fieldMap.price);
+    const compareAtPrice = getField(record, fieldMap.compareAtPrice);
     const stock = getField(record, fieldMap.stock);
+    const inventoryTracker = getField(record, fieldMap.inventoryTracker);
+    const option1Name = getField(record, fieldMap.option1Name);
+    const option1Value = getField(record, fieldMap.option1Value);
+    const option2Name = getField(record, fieldMap.option2Name);
+    const option2Value = getField(record, fieldMap.option2Value);
+    const option3Name = getField(record, fieldMap.option3Name);
+    const option3Value = getField(record, fieldMap.option3Value);
     const description = getField(record, fieldMap.description);
     const seoTitle = getField(record, fieldMap.seoTitle);
     const seoDescription = getField(record, fieldMap.seoDescription);
@@ -192,8 +218,12 @@ export function analyzeProducts(headers, records) {
     }
 
     if (handle) {
+      if (!handleRows.has(handle)) handleRows.set(handle, []);
+      handleRows.get(handle).push(rowNumber);
+
       if (seenHandles.has(handle)) {
-        addIssue(issues, "warning", rowNumber, fieldMap.handle, "商品 Handle/SPU 重复", handle, `与第 ${seenHandles.get(handle)} 行重复；若是同一商品多规格可以保留，否则需拆分。`);
+        const severity = shopifyMode ? "info" : "warning";
+        addIssue(issues, severity, rowNumber, fieldMap.handle, "商品 Handle/SPU 重复", handle, `与第 ${seenHandles.get(handle)} 行重复；若是同一商品多规格可以保留，否则需拆分。`);
       } else {
         seenHandles.set(handle, rowNumber);
       }
@@ -203,6 +233,10 @@ export function analyzeProducts(headers, records) {
       addIssue(issues, "critical", rowNumber, fieldMap.image, "图片为空", image, "补充主图链接或图片文件名，避免导入后商品无图。");
     } else if (!looksLikeImageValue(image)) {
       addIssue(issues, "warning", rowNumber, fieldMap.image, "图片字段不像有效图片地址", image, "确认是否为图片 URL、文件名或平台允许的图片字段。");
+    }
+
+    if (image.trim() && hasMultipleImageUrls(image)) {
+      addIssue(issues, "warning", rowNumber, fieldMap.image, "图片字段包含多个链接", image.slice(0, 160), "Shopify 多图通常需要拆成多行或按平台模板填写图片列，不要把多个 URL 挤在一个单元格。");
     }
 
     if (image.trim() && !imageAlt.trim()) {
@@ -218,13 +252,28 @@ export function analyzeProducts(headers, records) {
       } else if (parsedPrice < 1) {
         addIssue(issues, "warning", rowNumber, fieldMap.price, "价格过低", price, "确认是否漏填单位、币种或小数点。");
       }
+
+      if (compareAtPrice.trim()) {
+        const parsedCompareAtPrice = parsePrice(compareAtPrice);
+        if (!Number.isFinite(parsedCompareAtPrice) || parsedCompareAtPrice <= 0) {
+          addIssue(issues, "warning", rowNumber, fieldMap.compareAtPrice, "对比价异常", compareAtPrice, "对比价应为大于 0 的数字；不使用划线价时可以留空。");
+        } else if (Number.isFinite(parsedPrice) && parsedCompareAtPrice <= parsedPrice) {
+          addIssue(issues, "warning", rowNumber, fieldMap.compareAtPrice, "对比价不高于售价", compareAtPrice, "Shopify 的 Compare At Price 通常应高于 Variant Price，否则折扣展示可能异常。");
+        }
+      }
     }
 
     if (!stock.trim()) {
       addIssue(issues, "info", rowNumber, fieldMap.stock, "库存为空", stock, "若平台要求库存字段，需补充可售数量或设置为平台允许的默认值。");
     } else if (!isIntegerLike(stock)) {
       addIssue(issues, "warning", rowNumber, fieldMap.stock, "库存不是整数", stock, "库存通常应为非负整数，请确认是否混入文字。");
+    } else if (shopifyMode && isVariantInventoryQty(fieldMap.stock) && (!fieldMap.inventoryTracker || !inventoryTracker.trim())) {
+      addIssue(issues, "info", rowNumber, fieldMap.inventoryTracker, "库存数量有值但库存追踪为空", inventoryTracker, "如果需要 Shopify 跟踪库存，确认 Variant Inventory Tracker 是否应填写 shopify。");
     }
+
+    addOptionPairIssue(issues, rowNumber, fieldMap.option1Name, fieldMap.option1Value, option1Name, option1Value, "Option1");
+    addOptionPairIssue(issues, rowNumber, fieldMap.option2Name, fieldMap.option2Value, option2Name, option2Value, "Option2");
+    addOptionPairIssue(issues, rowNumber, fieldMap.option3Name, fieldMap.option3Value, option3Name, option3Value, "Option3");
 
     if (!description.trim()) {
       addIssue(issues, "warning", rowNumber, fieldMap.description, "商品描述为空", description, "补充材质、尺寸、适用场景、包装和注意事项。");
@@ -255,6 +304,8 @@ export function analyzeProducts(headers, records) {
       addIssue(issues, "info", rowNumber, fieldMap.size, "尺寸/规格为空", size, "补充尺寸、容量或规格，减少售前反复询问。");
     }
   });
+
+  addNonContiguousHandleIssues(issues, handleRows, fieldMap.handle, shopifyMode);
 
   const summary = summarizeIssues(records.length, issues, fieldMap);
   return { summary, fieldMap, issues };
@@ -335,6 +386,40 @@ function addRiskTermIssues(issues, rowNumber, field, text) {
   );
 }
 
+function addOptionPairIssue(issues, rowNumber, nameField, valueField, name, value, label) {
+  const hasName = String(name || "").trim();
+  const hasValue = String(value || "").trim();
+
+  if (hasName && !hasValue) {
+    addIssue(issues, "warning", rowNumber, valueField, `${label} 有名称但缺少值`, value, "有规格名称时应补充对应规格值，避免 Shopify 变体结构异常。");
+  }
+
+  if (!hasName && hasValue) {
+    addIssue(issues, "warning", rowNumber, nameField, `${label} 有值但缺少名称`, value, "有规格值时应补充对应规格名称，例如 Color、Size。");
+  }
+}
+
+function addNonContiguousHandleIssues(issues, handleRows, handleField, shopifyMode) {
+  if (!shopifyMode || !handleField) return;
+
+  handleRows.forEach((rows, handle) => {
+    if (rows.length < 2) return;
+    const sorted = [...rows].sort((a, b) => a - b);
+    const contiguous = sorted.every((row, index) => index === 0 || row === sorted[index - 1] + 1);
+    if (contiguous) return;
+
+    addIssue(
+      issues,
+      "warning",
+      sorted[0],
+      handleField,
+      "同一 Handle 的变体行不连续",
+      handle,
+      `同一 Shopify 商品的变体行建议放在一起；当前出现在第 ${sorted.join("、")} 行。`
+    );
+  });
+}
+
 function summarizeIssues(totalRows, issues, fieldMap) {
   const counts = issues.reduce(
     (acc, issue) => {
@@ -357,6 +442,19 @@ function summarizeIssues(totalRows, issues, fieldMap) {
     counts,
     detectedFields,
   };
+}
+
+function isShopifyLike(headers, fieldMap) {
+  const normalizedHeaders = headers.map(normalizeHeader);
+  return Boolean(
+    normalizedHeaders.includes("variant sku") ||
+    normalizedHeaders.includes("variant price") ||
+    normalizedHeaders.includes("image src") ||
+    fieldMap.option1Name ||
+    fieldMap.option1Value ||
+    fieldMap.compareAtPrice ||
+    fieldMap.inventoryTracker
+  );
 }
 
 function labelForDetectedField(header) {
@@ -401,6 +499,15 @@ function isIntegerLike(value) {
 function looksLikeImageValue(value) {
   const text = String(value || "").trim();
   return /^(https?:)?\/\//i.test(text) || /\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i.test(text);
+}
+
+function hasMultipleImageUrls(value) {
+  const matches = String(value || "").match(/https?:\/\/[^\s,;|]+/gi);
+  return (matches || []).length > 1;
+}
+
+function isVariantInventoryQty(header) {
+  return normalizeHeader(header) === "variant inventory qty";
 }
 
 function hasSuspiciousHtml(value) {
