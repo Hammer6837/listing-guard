@@ -246,6 +246,13 @@ h3 {
   justify-content: space-between;
 }
 
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 .summary-grid {
   display: grid;
   gap: 10px;
@@ -306,6 +313,33 @@ h3 {
 }
 
 .field-chip small {
+  color: var(--muted);
+}
+
+.request-box {
+  background: #f7faf8;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin-bottom: 18px;
+  padding: 14px;
+}
+
+.request-box[hidden] {
+  display: none;
+}
+
+.request-box textarea {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  line-height: 1.55;
+  margin: 4px 0 8px;
+  padding: 11px 12px;
+  resize: vertical;
+  width: 100%;
+}
+
+.request-box small {
   color: var(--muted);
 }
 
@@ -439,6 +473,14 @@ td {
   .panel-head {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .result-actions {
+    justify-content: stretch;
+  }
+
+  .result-actions button {
+    flex: 1;
   }
 
   .status-pill {

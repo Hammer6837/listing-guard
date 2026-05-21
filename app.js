@@ -5,17 +5,21 @@ const pasteInput = document.querySelector("#pasteData");
 const analyzePasteButton = document.querySelector("#analyzePaste");
 const sampleButton = document.querySelector("#loadSample");
 const downloadButton = document.querySelector("#downloadReport");
+const copyRequestButton = document.querySelector("#copyRequest");
 const resetButton = document.querySelector("#resetTool");
 const statusText = document.querySelector("#statusText");
 const summaryEl = document.querySelector("#summary");
 const fieldsEl = document.querySelector("#fields");
 const issuesEl = document.querySelector("#issues");
+const requestBox = document.querySelector("#requestBox");
+const requestText = document.querySelector("#requestText");
 const emptyState = document.querySelector("#emptyState");
 const fileNameEl = document.querySelector("#fileName");
 const filterButtons = [...document.querySelectorAll("[data-filter]")];
 
 let currentIssues = [];
 let currentFilter = "all";
+let currentSummary = null;
 
 fileInput.addEventListener("change", async (event) => {
   const file = event.target.files?.[0];
@@ -51,18 +55,35 @@ downloadButton.addEventListener("click", () => {
   URL.revokeObjectURL(url);
 });
 
+copyRequestButton.addEventListener("click", async () => {
+  if (!currentSummary) return;
+  const text = buildDiagnosisRequest();
+  requestText.value = text;
+  requestBox.hidden = false;
+  requestText.focus();
+  requestText.select();
+  const copied = await copyText(text);
+  statusText.textContent = copied
+    ? "已复制诊断需求说明，可粘贴给服务方并附上脱敏表。"
+    : "已生成诊断需求说明；若浏览器禁止自动复制，请手动复制文本框内容。";
+});
+
 resetButton.addEventListener("click", () => {
   fileInput.value = "";
   pasteInput.value = "";
   currentIssues = [];
   currentFilter = "all";
+  currentSummary = null;
   fileNameEl.textContent = "未选择文件";
   statusText.textContent = "上传 CSV 或粘贴表格后开始体检。";
   summaryEl.innerHTML = "";
   fieldsEl.innerHTML = "";
   issuesEl.innerHTML = "";
+  requestText.value = "";
+  requestBox.hidden = true;
   emptyState.hidden = false;
   downloadButton.disabled = true;
+  copyRequestButton.disabled = true;
   setActiveFilter("all");
 });
 
@@ -83,10 +104,14 @@ function runAnalysis(text, filename) {
 
     const result = analyzeProducts(headers, records);
     currentIssues = result.issues;
+    currentSummary = result.summary;
+    requestText.value = buildDiagnosisRequest();
+    requestBox.hidden = false;
     fileNameEl.textContent = filename;
     statusText.textContent = `已完成 ${result.summary.totalRows} 行商品资料体检。`;
     emptyState.hidden = true;
     downloadButton.disabled = currentIssues.length === 0;
+    copyRequestButton.disabled = false;
     renderSummary(result.summary);
     renderFields(result.summary.detectedFields);
     renderIssues();
@@ -94,7 +119,50 @@ function runAnalysis(text, filename) {
     statusText.textContent = error.message || "解析失败，请确认内容是 CSV 或从表格复制的文本。";
     emptyState.hidden = false;
     downloadButton.disabled = true;
+    copyRequestButton.disabled = true;
   }
+}
+
+function buildDiagnosisRequest() {
+  const counts = currentSummary.counts;
+  const detectedFields = currentSummary.detectedFields
+    .map((field) => `${field.label}=${field.header}`)
+    .join("，") || "未识别到常见字段";
+
+  return [
+    "我需要一份商品表人工诊断。",
+    "",
+    `商品行数：${currentSummary.totalRows}`,
+    `当前报告：严重问题 ${counts.critical} 个，提醒 ${counts.warning} 个，建议 ${counts.info} 个。`,
+    `已识别字段：${detectedFields}`,
+    "",
+    "我会提供脱敏后的 CSV/Excel 商品表。",
+    "已删除：成本价、供应商、客户信息、订单号、物流单号、内部备注、账号密码。",
+    "",
+    "请先判断是否适合做 99 元人工诊断；服务边界是不承诺导入成功、审核通过、排名或销量。"
+  ].join("\n");
+}
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Fall through to textarea copy for older or restricted browsers.
+    }
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  document.body.append(textarea);
+  textarea.select();
+  const copied = document.execCommand("copy");
+  textarea.remove();
+  return copied;
 }
 
 function renderSummary(summary) {

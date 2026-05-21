@@ -51,11 +51,20 @@
                 <h2>体检结果</h2>
                 <p id="statusText" class="muted">上传 CSV 或粘贴表格后开始体检。</p>
               </div>
-              <button id="downloadReport" type="button" disabled>下载报告</button>
+              <div class="result-actions">
+                <button id="copyRequest" type="button" class="secondary" disabled>复制诊断需求</button>
+                <button id="downloadReport" type="button" disabled>下载报告</button>
+              </div>
             </div>
 
             <div id="summary" class="summary-grid"></div>
             <div id="fields" class="field-list"></div>
+
+            <div id="requestBox" class="request-box" hidden>
+              <h3>人工诊断需求说明</h3>
+              <textarea id="requestText" rows="8" readonly></textarea>
+              <small>可复制这段说明，并附上脱敏后的商品表，用于咨询 99 元人工诊断。</small>
+            </div>
 
             <div class="filters" aria-label="问题筛选">
               <button class="active" type="button" data-filter="all">全部</button>
